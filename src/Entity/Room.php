@@ -24,6 +24,9 @@ class Room implements JsonSerializable {
     #[ORM\Column]
     private ?int $people = null;
     
+    #[ORM\OneToOne(targetEntity: Building::class, inversedBy: 'building')]
+    private ?Building $building;
+    
     public function getId(): ?Ulid {
         return $this->id;
     }
@@ -46,11 +49,21 @@ class Room implements JsonSerializable {
         return $this;
     }
     
+    public function getBuilding(): Building {
+        return $this->building;
+    }
+    
+    public function setBuilding(Building $building): self {
+        $this->building = $building;
+        return $this;
+    }
+    
     public function jsonSerialize(): mixed {
         return array(
             "id" => $this->getId(),
             "name" => $this->getName(),
-            "people" => $this->getPeople()
+            "people" => $this->getPeople(),
+            "building" => $this->getBuilding()
         );
     }
     
