@@ -4,7 +4,9 @@ namespace App\Repository;
 
 use App\Entity\Room;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\HttpFoundation\Request;
 
 /**
  * @extends ServiceEntityRepository<Room>
@@ -14,29 +16,15 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method Room[]    findAll()
  * @method Room[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class RoomRepository extends ServiceEntityRepository
+class RoomRepository extends CustomRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, Room::class);
-    }
 
-    public function save(Room $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->persist($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
-    }
-
-    public function remove(Room $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->remove($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
+    public function findAllWithPage(Request $request): Paginator {
+        $sql = "SELECT p, c";
+        $query = $this->createQuery()
+            ->setFirstResult();
+        
+        return parent::findAllWithPage($query, $request);
     }
 
 //    /**

@@ -25,7 +25,7 @@ class Room implements JsonSerializable {
     private ?int $peoples = null;
     
     #[ORM\OneToOne(targetEntity: Building::class, inversedBy: 'building')]
-    private ?Building $building;
+    private Building $building;
     
     public function getId(): ?Ulid {
         return $this->id;
