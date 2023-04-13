@@ -4,7 +4,9 @@ namespace App\Repository;
 
 use App\Entity\Organization;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\HttpFoundation\Request;
 
 /**
  * @extends ServiceEntityRepository<Organization>
@@ -14,29 +16,17 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method Organization[]    findAll()
  * @method Organization[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class OrganizationRepository extends ServiceEntityRepository
+class OrganizationRepository extends CustomRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, Organization::class);
-    }
-
-    public function save(Organization $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->persist($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
-    }
-
-    public function remove(Organization $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->remove($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
+    
+    public function findAllWithPage(Request $request): Paginator {
+        dump($request);
+        $organizations = $this->findBy([], null, 10, 0);
+        
+        $paginator = new Paginator($organizations);
+        dump($paginator);
+        
+        return $paginator;
     }
 
 //    /**

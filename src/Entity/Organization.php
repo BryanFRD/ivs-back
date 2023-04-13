@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\OrganizationRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use JsonSerializable;
 use Symfony\Bridge\Doctrine\IdGenerator\UlidGenerator;
@@ -21,6 +23,13 @@ class Organization implements JsonSerializable {
     #[ORM\Column(length: 255)]
     private ?string $name = null;
     
+    #[ORM\OneToMany(targetEntity: Building::class, mappedBy: "organization")]
+    private Collection $buildings;
+    
+    public function __construct(){
+        $this->buildings = new ArrayCollection();
+    }
+    
     public function getId(): Ulid {
         return $this->id;
     }
@@ -34,10 +43,15 @@ class Organization implements JsonSerializable {
         return $this;
     }
     
+    public function getBuildings(): Collection {
+        return $this->buildings;
+    }
+    
     public function jsonSerialize(): mixed {
         return array(
             "id" => $this->getId(),
-            "name" => $this->getName()
+            "name" => $this->getName(),
+            "buildings" => $this->getBuildings()
         );
     }
     

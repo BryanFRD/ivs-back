@@ -2,73 +2,72 @@
 
 namespace App\Controller;
 
-use App\Entity\Organization;
-use App\Repository\OrganizationRepository;
+use App\Entity\Room;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Serializer\SerializerInterface;
 
-#[Route(path: "/organization")]
+#[Route(path: "/room")]
 class OrganizationController extends CustomController
 {
     
     #[Route(
         path: "",
-        name: "organization_show_all",
+        name: "room_show_all",
         methods: ["GET"])]
-    public function getAllOrganization(): JsonResponse {
+    public function getAllRoom(): JsonResponse {
         return parent::getAll();
     }
     
     #[Route(
         path: "/{id}",
-        name: "organization_show_by_id",
+        name: "room_show_by_id",
         requirements: ["id" => "[0-7][0-9A-HJKMNP-TV-Z]{25}"],
         methods: ["GET"])]
-    public function getOrganizationById(Organization $organization): JsonResponse {
-        return parent::getById($organization);
+    public function getRoomById(Room $room): JsonResponse {
+        return parent::getById($room);
     }
     
     #[Route(
         path: "",
-        name: "organization_save",
+        name: "room_save",
         methods: ["POST"])]
-    public function saveOrganization(Request $request): JsonResponse {
+    public function saveRoom(Request $request): JsonResponse {
         return parent::save($request);
     }
       
     #[Route(
         path: "/{id}",
-        name: "organization_update",
+        name: "room_update",
         requirements: ["id" => "[0-7][0-9A-HJKMNP-TV-Z]{25}"],
         methods: ["PUT"]
     )]
-    public function updateOrganization(Organization $organization, EntityManagerInterface $entityManager, Request $request): JsonResponse {
+    public function updateRoom(Room $room, EntityManagerInterface $entityManager, Request $request): JsonResponse {
         $body = json_decode($request->getContent() ?? "");
         
-        if(!$body->name)
+        if(!$body->name || !$body->peoples || !$body->building)
           throw new BadRequestHttpException("Missing arguments");
         
-        $organization
-          ->setName($body->name);
+        $room
+          ->setName($body->name)
+          ->setPeoples($body->peoples)
+          ->setBuilding($body->building);
         
         $entityManager->flush();
           
-        return new JsonResponse($organization);
+        return new JsonResponse($room);
     }
     
     #[Route(
         path: "/{id}",
-        name: "organization_delete",
+        name: "room_delete",
         requirements: ["id" => "[0-7][0-9A-HJKMNP-TV-Z]{25}"],
         methods: ["DELETE"]
       )]
-      public function deleteOrganization(Organization $organization): JsonResponse {
-        return parent::delete($organization);
+      public function deleteRoom(Room $room): JsonResponse {
+        return parent::delete($room);
       }
     
 }

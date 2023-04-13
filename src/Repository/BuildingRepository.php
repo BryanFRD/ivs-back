@@ -4,7 +4,11 @@ namespace App\Repository;
 
 use App\Entity\Building;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\QueryBuilder;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\HttpFoundation\Request;
 
 /**
  * @extends ServiceEntityRepository<Building>
@@ -14,31 +18,15 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method Building[]    findAll()
  * @method Building[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class BuildingRepository extends ServiceEntityRepository
+class BuildingRepository extends CustomRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, Building::class);
+    
+    public function findAllWithPage(QueryBuilder $query, Request $request): Paginator {
+        $paginator = new Paginator($query);
+        
+        return $paginator;
     }
-
-    public function save(Building $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->persist($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
-    }
-
-    public function remove(Building $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->remove($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
-    }
-
+    
 //    /**
 //     * @return Building[] Returns an array of Building objects
 //     */
