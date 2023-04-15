@@ -3,7 +3,6 @@
 namespace App\Entity;
 
 use App\Repository\OrganizationRepository;
-use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use JsonSerializable;
@@ -24,11 +23,7 @@ class Organization implements JsonSerializable {
     private ?string $name = null;
     
     #[ORM\OneToMany(targetEntity: Building::class, mappedBy: "organization")]
-    private Collection $buildings;
-    
-    public function __construct(){
-        $this->buildings = new ArrayCollection();
-    }
+    private $buildings;
     
     public function getId(): Ulid {
         return $this->id;
@@ -43,15 +38,14 @@ class Organization implements JsonSerializable {
         return $this;
     }
     
-    public function getBuildings(): Collection {
+    public function getBuildings() {
         return $this->buildings;
     }
     
     public function jsonSerialize(): mixed {
         return array(
             "id" => $this->getId(),
-            "name" => $this->getName(),
-            "buildings" => $this->getBuildings()
+            "name" => $this->getName()
         );
     }
     

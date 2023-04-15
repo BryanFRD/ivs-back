@@ -24,7 +24,7 @@ class Room implements JsonSerializable {
     #[ORM\Column]
     private ?int $peoples = null;
     
-    #[ORM\OneToOne(targetEntity: Building::class, inversedBy: 'building')]
+    #[ORM\ManyToOne(targetEntity: Building::class, inversedBy: 'building')]
     private Building $building;
     
     public function getId(): ?Ulid {
@@ -62,8 +62,7 @@ class Room implements JsonSerializable {
         return array(
             "id" => $this->getId(),
             "name" => $this->getName(),
-            "peoples" => $this->getPeoples(),
-            "building" => $this->getBuilding()
+            "peoples" => $this->getPeoples()
         );
     }
     

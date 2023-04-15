@@ -3,14 +3,12 @@
 namespace App\Controller;
 
 use App\Entity\Organization;
-use App\Repository\OrganizationRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
 
 #[Route(path: "/organization")]
 class OrganizationController extends CustomController
@@ -38,7 +36,7 @@ class OrganizationController extends CustomController
         name: "organization_save",
         methods: ["POST"])]
     public function saveOrganization(Request $request): JsonResponse {
-        return parent::save($request);
+        return parent::save($request, [AbstractObjectNormalizer::DISABLE_TYPE_ENFORCEMENT => true]);
     }
       
     #[Route(

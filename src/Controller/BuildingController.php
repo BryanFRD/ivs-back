@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Building;
 use App\Repository\BuildingRepository;
+use App\Repository\OrganizationRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -48,16 +49,16 @@ class BuildingController extends CustomController {
     requirements: ["id" => "[0-7][0-9A-HJKMNP-TV-Z]{25}"],
     methods: ["PUT"]
   )]
-  public function updateBuilding(Building $building, EntityManagerInterface $entityManager, Request $request): JsonResponse {
+  public function updateBuilding(Building $building, EntityManagerInterface $entityManager, Request $request, OrganizationRepository $organizationRepository): JsonResponse {
     $body = json_decode($request->getContent() ?? "");
     
-    if(!$body->name || !$body->zipcode || !$body->building)
+    if(!$body || !$body->name || !$body->zipcode)
       throw new BadRequestHttpException("Missing arguments");
-    
+      
     $building
       ->setName($body->name)
-      ->setZipcode($body->zipcode)
-      ->setOrganization($body->building);
+      ->setZipcode(intval($body->zipcode))
+      ->setOrganization($organizationRepository->find($body->organization ?: ''));
     
     $entityManager->flush();
       
