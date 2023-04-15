@@ -26,15 +26,11 @@ class Building implements JsonSerializable {
     #[ORM\Column]
     private ?int $zipcode = null;
     
-    #[ORM\OneToOne(targetEntity: Organization::class, inversedBy: 'buildings')]
-    private ?Organization $organization = null;
+    #[ORM\ManyToOne(targetEntity: Organization::class, inversedBy: 'building')]
+    private ?Organization $organization;
     
-    #[ORM\OneToMany(targetEntity: Room::class, mappedBy: 'building')]
-    private Collection $rooms;
-    
-    public function __construct(){
-        $this->rooms = new ArrayCollection();
-    }
+    #[ORM\OneToMany(targetEntity: Room::class, mappedBy: 'buildings')]
+    private ?Collection $rooms;
     
     public function getId(): ?Ulid {
         return $this->id;
@@ -53,21 +49,21 @@ class Building implements JsonSerializable {
         return $this->zipcode;
     }
     
-    public function setZipcode(int $zipcode): self {
-        $this->zipcode = $zipcode;
+    public function setZipcode($zipcode): self {
+        $this->zipcode = intval($zipcode);
         return $this;
     }
     
-    public function getOrganization(): ?Organization {
+    public function getOrganization() {
         return $this->organization;
     }
     
-    public function setOrganization(Organization $organization): self {
+    public function setOrganization($organization): self {
         $this->organization = $organization;
         return $this;
     }
     
-    public function getRooms(): Collection {
+    public function getRooms(): ?Collection {
         return $this->rooms;
     }
     
@@ -76,8 +72,7 @@ class Building implements JsonSerializable {
             "id" => $this->getId(),
             "name" => $this->getName(),
             "zipcode" => $this->getZipcode(),
-            "organization" => $this->getOrganization(),
-            "rooms" => $this->getRooms()
+            "organization" => $this->getOrganization()
         );
     }
     

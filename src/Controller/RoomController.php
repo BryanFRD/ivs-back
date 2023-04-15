@@ -3,14 +3,16 @@
 namespace App\Controller;
 
 use App\Entity\Room;
+use App\Repository\BuildingRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
 
 #[Route(path: "/room")]
-class OrganizationController extends CustomController
+class RoomController extends CustomController
 {
     
     #[Route(
@@ -35,25 +37,24 @@ class OrganizationController extends CustomController
         name: "room_save",
         methods: ["POST"])]
     public function saveRoom(Request $request): JsonResponse {
-        return parent::save($request);
+        return parent::save($request, [AbstractObjectNormalizer::DISABLE_TYPE_ENFORCEMENT => true]);
     }
-      
+    
     #[Route(
         path: "/{id}",
         name: "room_update",
         requirements: ["id" => "[0-7][0-9A-HJKMNP-TV-Z]{25}"],
-        methods: ["PUT"]
-    )]
-    public function updateRoom(Room $room, EntityManagerInterface $entityManager, Request $request): JsonResponse {
+        methods: ["PUT"])]
+    public function updateRoom(Room $room, EntityManagerInterface $entityManager, Request $request, BuildingRepository $buildingRepository): JsonResponse {
         $body = json_decode($request->getContent() ?? "");
         
-        if(!$body->name || !$body->peoples || !$body->building)
+        if(!$body->name || !$body->peoples)
           throw new BadRequestHttpException("Missing arguments");
         
         $room
           ->setName($body->name)
           ->setPeoples($body->peoples)
-          ->setBuilding($body->building);
+          ->setBuilding($buildingRepository->find($body->building ?: ''));
         
         $entityManager->flush();
           

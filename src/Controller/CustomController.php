@@ -6,19 +6,20 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
 
 class CustomController extends AbstractController {
   
   protected string $entityName;
   protected EntityManagerInterface $entityManager;
-  protected mixed $repository;
+  protected $repository;
   protected Request $request;
   protected SerializerInterface $serializer;
   
   public function __construct(EntityManagerInterface $entityManager, SerializerInterface $serializer) {
     $this->entityName = preg_replace(
-      ['/^App\\\Controller/', "/Controller$/"],
+      ["/^App\\\Controller/", "/Controller$/"],
       ["App\\Entity"],
       get_class($this)
     );
@@ -37,7 +38,7 @@ class CustomController extends AbstractController {
   }
   
   public function save(Request $request): JsonResponse {
-    $entity = $this->serializer->deserialize($request->getContent(), $this->entityName, "json");
+    $entity = $this->serializer->deserialize($request->getContent(), $this->entityName, "json", [AbstractObjectNormalizer::DISABLE_TYPE_ENFORCEMENT => true]);
     
     $this->repository->save($entity, true);
     
@@ -45,10 +46,10 @@ class CustomController extends AbstractController {
   }
   
   public function delete($entity): JsonResponse {
-    $this->repository->remove($entity);
-    $this->repository->flush();
+    $this->entityManager->remove($entity);
+    $this->entityManager->flush();
     
-    return new JsonResponse(status: 204);
+    return new JsonResponse($this->repository->findAll());
   }
   
 }
