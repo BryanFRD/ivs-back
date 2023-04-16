@@ -3,7 +3,6 @@
 namespace App\Entity;
 
 use App\Repository\BuildingRepository;
-use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use JsonSerializable;
@@ -21,15 +20,15 @@ class Building implements JsonSerializable {
     private ?Ulid $id = null;
     
     #[ORM\Column(length: 255)]
-    private ?string $name = null;
+    private ?string $name;
     
     #[ORM\Column]
-    private ?int $zipcode = null;
+    private ?int $zipcode;
     
-    #[ORM\ManyToOne(targetEntity: Organization::class, inversedBy: 'building')]
+    #[ORM\ManyToOne(targetEntity: Organization::class, inversedBy: "building")]
     private ?Organization $organization;
     
-    #[ORM\OneToMany(targetEntity: Room::class, mappedBy: 'buildings')]
+    #[ORM\OneToMany(targetEntity: Room::class, mappedBy: "building", )]
     private ?Collection $rooms;
     
     public function getId(): ?Ulid {
@@ -49,8 +48,8 @@ class Building implements JsonSerializable {
         return $this->zipcode;
     }
     
-    public function setZipcode($zipcode): self {
-        $this->zipcode = intval($zipcode);
+    public function setZipcode(int $zipcode): self {
+        $this->zipcode = $zipcode;
         return $this;
     }
     
