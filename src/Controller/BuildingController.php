@@ -36,6 +36,17 @@ class BuildingController extends CustomController
     {
         return parent::getById($building);
     }
+    
+    #[Route(
+        path: "/{id}/rooms",
+        name: "building_show_rooms",
+        requirements: ["id" => "[0-7][0-9A-HJKMNP-TV-Z]{25}"],
+        methods: ["GET"]
+    )]
+    public function getRoomsOfBuildingById(Building $building): JsonResponse
+    {
+        return new JsonResponse($building->getRooms()->toArray());
+    }
 
     #[Route(
         path: "",

@@ -33,7 +33,18 @@ class OrganizationController extends CustomController
     {
         return parent::getById($organization);
     }
-
+    
+    #[Route(
+        path: "/{id}/buildings",
+        name: "organization_show_buildings",
+        requirements: ["id" => "[0-7][0-9A-HJKMNP-TV-Z]{25}"],
+        methods: ["GET"]
+    )]
+    public function getRoomsOfBuildingById(Organization $organization): JsonResponse
+    {
+        return new JsonResponse($organization->getBuildings()->toArray());
+    }
+    
     #[Route(
         path: "",
         name: "organization_save",

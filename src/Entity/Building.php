@@ -28,7 +28,7 @@ class Building implements JsonSerializable {
     #[ORM\ManyToOne(targetEntity: Organization::class, inversedBy: "building")]
     private ?Organization $organization;
     
-    #[ORM\OneToMany(targetEntity: Room::class, mappedBy: "buildings")]
+    #[ORM\OneToMany(targetEntity: Room::class, mappedBy: "building", )]
     private ?Collection $rooms;
     
     public function getId(): ?Ulid {
