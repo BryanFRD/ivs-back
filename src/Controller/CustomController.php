@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -31,9 +32,26 @@ class CustomController extends AbstractController
         $this->serializer = $serializer;
     }
 
-    public function getAll(): JsonResponse
+    public function getAll(EntityManagerInterface $entityManager, Request $request): JsonResponse
     {
-        return new JsonResponse($this->repository->findAll());
+        $query = $request->query;
+        $search = $query->get("search", "");
+        
+        $queryBuilder = $entityManager->createQueryBuilder();
+        $queryBuilder
+            ->select("e")
+            ->from($this->entityName, "e")
+            ->where("e.name LIKE :search")
+            ->setParameter("search", "%$search%")
+            ->setFirstResult($query->get("offset", "0"))
+            ->setMaxResults($query->get("limit", "50"));
+        
+        $paginator = new Paginator($queryBuilder);
+        
+        return new JsonResponse([
+            "count" => count($paginator),
+            "datas" => $paginator->getQuery()->getResult()
+        ]);
     }
 
     public function getById($entity): JsonResponse
