@@ -2,12 +2,15 @@
 
 namespace App\Controller;
 
+use App\Entity\Building;
 use App\Entity\Organization;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Uid\Ulid;
 
 #[Route(path: "/organization")]
 class OrganizationController extends CustomController
@@ -18,9 +21,29 @@ class OrganizationController extends CustomController
         name: "organization_show_all",
         methods: ["GET"]
     )]
-    public function getAllOrganization(): JsonResponse
+    public function getAllOrganization(EntityManagerInterface $entityManager, Request $request): JsonResponse
     {
-        return parent::getAll();
+        $query = $request->query;
+        $searchParam = $query->get("search", "");
+        
+        $queryBuilder = $entityManager->createQueryBuilder();
+        $queryBuilder
+            ->select("o.id, o.name, SUM(r.peoples) AS peoples")
+            ->from(Organization::class, "o")
+            ->join("o.buildings", "b")
+            ->join("b.rooms", "r")
+            ->groupBy("o.id")
+            ->where("o.name LIKE :search")
+            ->setParameter("search", "%$searchParam%")
+            ->setFirstResult($query->get("offset", "0"))
+            ->setMaxResults($query->get("limit", "50"));
+            
+        $paginator = new Paginator($queryBuilder);
+        
+        return new JsonResponse([
+            "count" => count($paginator),
+            "datas" => $paginator->getQuery()->getResult()
+        ]);
     }
 
     #[Route(
@@ -29,9 +52,19 @@ class OrganizationController extends CustomController
         requirements: ["id" => "[0-7][0-9A-HJKMNP-TV-Z]{25}"],
         methods: ["GET"]
     )]
-    public function getOrganizationById(Organization $organization): JsonResponse
-    {
-        return parent::getById($organization);
+    public function getOrganizationById(EntityManagerInterface $entityManager, Ulid $id): JsonResponse
+    {   
+        $queryBuilder = $entityManager->createQueryBuilder();
+        $queryBuilder
+            ->select("o.id, o.name, SUM(r.peoples) AS peoples")
+            ->from(Organization::class, "o")
+            ->join("o.buildings", "b")
+            ->join("b.rooms", "r")
+            ->groupBy("o.id")
+            ->where("o.id = :id")
+            ->setParameter("id", $id->toBinary());
+            
+        return new JsonResponse($queryBuilder->getQuery()->getSingleResult());
     }
     
     #[Route(
@@ -40,9 +73,28 @@ class OrganizationController extends CustomController
         requirements: ["id" => "[0-7][0-9A-HJKMNP-TV-Z]{25}"],
         methods: ["GET"]
     )]
-    public function getRoomsOfBuildingById(Organization $organization): JsonResponse
+    public function getBuildingsOfOrganizationById(EntityManagerInterface $entityManager, Ulid $id, Request $request): JsonResponse
     {
-        return new JsonResponse($organization->getBuildings()->toArray());
+        $query = $request->query;
+        
+        $queryBuilder = $entityManager->createQueryBuilder();
+        $queryBuilder
+            ->select("o.id AS organization_id, o.name AS organization_name, b.id, b.name, b.zipcode, b.id, SUM(r.peoples) AS peoples")
+            ->from(Organization::class, "o")
+            ->innerJoin("o.buildings", "b")
+            ->join("b.rooms", "r")
+            ->groupBy("b.id")
+            ->where("o.id = :id")
+            ->setParameter("id", $id->toBinary())
+            ->setFirstResult($query->get("offset", "0"))
+            ->setMaxResults($query->get("limit", "50"));
+            
+        $paginator = new Paginator($queryBuilder);
+        
+        return new JsonResponse([
+            "count" => count($paginator),
+            "datas" => $paginator->getQuery()->getResult()
+        ]);
     }
     
     #[Route(

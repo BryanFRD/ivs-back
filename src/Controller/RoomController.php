@@ -21,9 +21,9 @@ class RoomController extends CustomController
         name: "room_show_all",
         methods: ["GET"]
     )]
-    public function getAllRoom(): JsonResponse
+    public function getAllRoom(EntityManagerInterface $entityManager, Request $request): JsonResponse
     {
-        return parent::getAll();
+        return parent::getAll($entityManager, $request);
     }
 
     #[Route(
