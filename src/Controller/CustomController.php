@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\Uid\Ulid;
 
 class CustomController extends AbstractController
 {
@@ -32,31 +33,14 @@ class CustomController extends AbstractController
         $this->serializer = $serializer;
     }
 
-    public function getAll(EntityManagerInterface $entityManager, Request $request): JsonResponse
+    public function getAll(Request $request): JsonResponse
     {
-        $query = $request->query;
-        $search = $query->get("search", "");
-        
-        $queryBuilder = $entityManager->createQueryBuilder();
-        $queryBuilder
-            ->select("e")
-            ->from($this->entityName, "e")
-            ->where("e.name LIKE :search")
-            ->setParameter("search", "%$search%")
-            ->setFirstResult($query->get("offset", "0"))
-            ->setMaxResults($query->get("limit", "50"));
-        
-        $paginator = new Paginator($queryBuilder);
-        
-        return new JsonResponse([
-            "count" => count($paginator),
-            "datas" => $paginator->getQuery()->getResult()
-        ]);
+        return new JsonResponse($this->repository->getAll($request));
     }
 
-    public function getById($entity): JsonResponse
+    public function getById(Ulid $id): JsonResponse
     {
-        return new JsonResponse($entity);
+        return new JsonResponse($this->repository->getById($id));
     }
 
     public function save(Request $request, array $context = []): JsonResponse
@@ -73,6 +57,6 @@ class CustomController extends AbstractController
         $this->entityManager->remove($entity);
         $this->entityManager->flush();
 
-        return new JsonResponse($this->repository->findAll());
+        return new JsonResponse($entity);
     }
 }

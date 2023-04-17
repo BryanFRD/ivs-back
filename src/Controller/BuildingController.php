@@ -24,29 +24,9 @@ class BuildingController extends CustomController
         name: "building_show_all",
         methods: ["GET"]
     )]
-    public function getAllBuilding(EntityManagerInterface $entityManager, Request $request): JsonResponse
+    public function getAllBuilding(Request $request): JsonResponse
     {
-        $query = $request->query;
-        $search = $query->get("search", "");
-        
-        $queryBuilder = $entityManager->createQueryBuilder();
-        $queryBuilder
-            ->select("b.id, b.name, b.zipcode, o.id as organization_id, o.name as organization_name, SUM(r.peoples) AS peoples")
-            ->from(Building::class, "b")
-            ->join("b.rooms", "r")
-            ->join("b.organization", "o")
-            ->groupBy("b.id")
-            ->where("b.name LIKE :search")
-            ->setParameter("search", "%$search%")
-            ->setFirstResult($query->get("offset", "0"))
-            ->setMaxResults($query->get("limit", "50"));
-        
-        $paginator = new Paginator($queryBuilder);
-            
-        return new JsonResponse([
-            "count" => count($paginator),
-            "datas" => $paginator->getQuery()->getResult()
-        ]);
+        return parent::getAll($request);
     }
 
     #[Route(
@@ -55,19 +35,9 @@ class BuildingController extends CustomController
         requirements: ["id" => "[0-7][0-9A-HJKMNP-TV-Z]{25}"],
         methods: ["GET"]
     )]
-    public function getBuildingById(EntityManagerInterface $entityManager, Ulid $id): JsonResponse
+    public function getBuildingById(Ulid $id): JsonResponse
     {
-        $queryBuilder = $entityManager->createQueryBuilder();
-        $queryBuilder
-            ->select("b.id, b.name, b.zipcode, o.id as organization_id, o.name as organization_name, SUM(r.peoples) AS peoples")
-            ->from(Building::class, "b")
-            ->join("b.rooms", "r")
-            ->join("b.organization", "o")
-            ->where("b.id = :id")
-            ->groupBy("b.id")
-            ->setParameter("id", $id->toBinary());
-        
-        return new JsonResponse($queryBuilder->getQuery()->getSingleResult());
+        return parent::getById($id);
     }
     
     #[Route(
@@ -76,25 +46,9 @@ class BuildingController extends CustomController
         requirements: ["id" => "[0-7][0-9A-HJKMNP-TV-Z]{25}"],
         methods: ["GET"]
     )]
-    public function getRoomsOfBuildingById(EntityManagerInterface $entityManager, Request $request, Ulid $id): JsonResponse
+    public function getRoomsOfBuildingById(Request $request, Ulid $id): JsonResponse
     {
-        $query = $request->query;
-        
-        $queryBuilder = $entityManager->createQueryBuilder();
-        $queryBuilder
-            ->select('r')
-            ->from(Room::class, 'r')
-            ->where("r.building = :id")
-            ->setParameter("id", $id->toBinary())
-            ->setFirstResult($query->get("offset", "0"))
-            ->setMaxResults($query->get("limit", "50"));
-            
-        $paginator = new Paginator($queryBuilder);
-        
-        return new JsonResponse([
-            "count" => count($paginator),
-            "datas" => $paginator->getQuery()->getResult()
-        ]);
+        return new JsonResponse($this->repository->getRoomsOfBuildingById($request, $id));
     }
 
     #[Route(
