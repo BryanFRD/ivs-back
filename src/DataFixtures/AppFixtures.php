@@ -14,14 +14,14 @@ class AppFixtures extends Fixture
     {
         $faker = \Faker\Factory::create('fr_FR');
         
-        for($i = 0; $i < 10; $i++){
+        for($i = 0; $i < 15; $i++){
             $organization = new Organization();
             $organization
                 ->setName($faker->word());
             
             $manager->persist($organization);
             
-            for($j = 0; $j < rand(1, 10); $j++){
+            for($j = 0; $j < rand(2, 15); $j++){
                 $building = new Building();
                 $building
                     ->setName($faker->word())
@@ -30,7 +30,7 @@ class AppFixtures extends Fixture
                     
                 $manager->persist($building);
                 
-                for($k = 0; $k < rand(1, 25); $k++){
+                for($k = 0; $k < rand(1, 15); $k++){
                     $room = new Room();
                     $room
                         ->setName($faker->name)
