@@ -3,53 +3,74 @@
 namespace App\Repository;
 
 use App\Entity\Organization;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Uid\Ulid;
 
-/**
- * @extends ServiceEntityRepository<Organization>
- *
- * @method Organization|null find($id, $lockMode = null, $lockVersion = null)
- * @method Organization|null findOneBy(array $criteria, array $orderBy = null)
- * @method Organization[]    findAll()
- * @method Organization[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
- */
 class OrganizationRepository extends CustomRepository
 {
-    
-    public function findAllWithPage(Request $request): Paginator {
-        dump($request);
-        $organizations = $this->findBy([], null, 10, 0);
+    public function getAll(Request $request): array
+    {
+        $query = $request->query;
+        $searchParam = $query->get("search", "");
         
-        $paginator = new Paginator($organizations);
-        dump($paginator);
+        $queryBuilder = $this->getEntityManager()->createQueryBuilder();
+        $queryBuilder
+            ->select("o.id, o.name, SUM(r.peoples) AS peoples")
+            ->from(Organization::class, "o")
+            ->join("o.buildings", "b")
+            ->join("b.rooms", "r")
+            ->groupBy("o.id")
+            ->where("o.name LIKE :search")
+            ->setParameter("search", "%$searchParam%")
+            ->setFirstResult($query->get("offset", "0"))
+            ->setMaxResults($query->get("limit", "50"));
+            
+        $paginator = new Paginator($queryBuilder);
         
-        return $paginator;
+        return [
+            "count" => count($paginator),
+            "datas" => $paginator->getQuery()->getResult()
+        ];
     }
-
-//    /**
-//     * @return Organization[] Returns an array of Organization objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('o')
-//            ->andWhere('o.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('o.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
-
-//    public function findOneBySomeField($value): ?Organization
-//    {
-//        return $this->createQueryBuilder('o')
-//            ->andWhere('o.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+    
+    public function getById(Ulid $id)
+    {   
+        $queryBuilder = $this->getEntityManager()->createQueryBuilder();
+        $queryBuilder
+            ->select("o.id, o.name, SUM(r.peoples) AS peoples")
+            ->from(Organization::class, "o")
+            ->join("o.buildings", "b")
+            ->join("b.rooms", "r")
+            ->groupBy("o.id")
+            ->where("o.id = :id")
+            ->setParameter("id", $id->toBinary());
+        
+        return $queryBuilder->getQuery()->getOneOrNullResult();
+    }
+    
+    public function getBuildingsOfOrganizationById(Request $request, Ulid $id)
+    {
+        $query = $request->query;
+        
+        $queryBuilder = $this->getEntityManager()->createQueryBuilder();
+        $queryBuilder
+            ->select("o.id AS organization_id, o.name AS organization_name, b.id, b.name, b.zipcode, b.id, SUM(r.peoples) AS peoples")
+            ->from(Organization::class, "o")
+            ->innerJoin("o.buildings", "b")
+            ->join("b.rooms", "r")
+            ->groupBy("b.id")
+            ->where("o.id = :id")
+            ->setParameter("id", $id->toBinary())
+            ->setFirstResult($query->get("offset", "0"))
+            ->setMaxResults($query->get("limit", "50"));
+            
+        $paginator = new Paginator($queryBuilder);
+        
+        return[
+            "count" => count($paginator),
+            "datas" => $paginator->getQuery()->getResult()
+        ];
+    }
+    
 }

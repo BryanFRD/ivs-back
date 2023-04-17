@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Uid\Ulid;
 
 #[Route(path: "/room")]
 class RoomController extends CustomController
@@ -21,9 +22,9 @@ class RoomController extends CustomController
         name: "room_show_all",
         methods: ["GET"]
     )]
-    public function getAllRoom(EntityManagerInterface $entityManager, Request $request): JsonResponse
+    public function getAllRoom(Request $request): JsonResponse
     {
-        return parent::getAll($entityManager, $request);
+        return parent::getAll($request);
     }
 
     #[Route(
@@ -32,9 +33,9 @@ class RoomController extends CustomController
         requirements: ["id" => "[0-7][0-9A-HJKMNP-TV-Z]{25}"],
         methods: ["GET"]
     )]
-    public function getRoomById(Room $room): JsonResponse
+    public function getRoomById(Ulid $id): JsonResponse
     {
-        return parent::getById($room);
+        return parent::getById($id);
     }
 
     #[Route(
@@ -42,7 +43,7 @@ class RoomController extends CustomController
         name: "room_save",
         methods: ["POST"]
     )]
-    public function saveRoom(Request $request, BuildingRepository $buildingRepository): JsonResponse
+    public function saveRoom(Request $request): JsonResponse
     {
         $body = json_decode($request->getContent());
 
@@ -55,12 +56,12 @@ class RoomController extends CustomController
             $room
                 ->setName($body->name)
                 ->setPeoples(intval($body->peoples))
-                ->setBuilding($buildingRepository->find($body->building_id ?: ''));
+                ->setBuilding($this->repository->find($body->building_id ?: ''));
         } catch (Exception $ignored) {
             throw new BadRequestException("Bad arguments");
         }
 
-        $buildingRepository->save($room, true);
+        $this->repository->save($room, true);
 
         return new JsonResponse($room, status: 201);
     }

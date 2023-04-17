@@ -3,50 +3,73 @@
 namespace App\Repository;
 
 use App\Entity\Building;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\ORM\QueryBuilder;
+use App\Entity\Room;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Uid\Ulid;
 
-/**
- * @extends ServiceEntityRepository<Building>
- *
- * @method Building|null find($id, $lockMode = null, $lockVersion = null)
- * @method Building|null findOneBy(array $criteria, array $orderBy = null)
- * @method Building[]    findAll()
- * @method Building[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
- */
 class BuildingRepository extends CustomRepository
 {
     
-    public function findAllWithPage(QueryBuilder $query, Request $request): Paginator {
-        $paginator = new Paginator($query);
+    public function getAll(Request $request): array
+    {
+        $query = $request->query;
+        $search = $query->get("search", "");
         
-        return $paginator;
+        $queryBuilder = $this->getEntityManager()->createQueryBuilder();
+        $queryBuilder
+            ->select("b.id, b.name, b.zipcode, o.id as organization_id, o.name as organization_name, SUM(r.peoples) AS peoples")
+            ->from(Building::class, "b")
+            ->join("b.rooms", "r")
+            ->join("b.organization", "o")
+            ->groupBy("b.id")
+            ->where("b.name LIKE :search")
+            ->setParameter("search", "%$search%")
+            ->setFirstResult($query->get("offset", "0"))
+            ->setMaxResults($query->get("limit", "50"));
+        
+        $paginator = new Paginator($queryBuilder);
+            
+        return [
+            "count" => count($paginator),
+            "datas" => $paginator->getQuery()->getResult()
+        ];
     }
     
-//    /**
-//     * @return Building[] Returns an array of Building objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('b')
-//            ->andWhere('b.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('b.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
-
-//    public function findOneBySomeField($value): ?Building
-//    {
-//        return $this->createQueryBuilder('b')
-//            ->andWhere('b.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+    public function getById(Ulid $id)
+    {
+        $queryBuilder = $this->getEntityManager()->createQueryBuilder();
+        $queryBuilder
+            ->select("b.id, b.name, b.zipcode, o.id as organization_id, o.name as organization_name, SUM(r.peoples) AS peoples")
+            ->from(Building::class, "b")
+            ->join("b.rooms", "r")
+            ->join("b.organization", "o")
+            ->where("b.id = :id")
+            ->groupBy("b.id")
+            ->setParameter("id", $id->toBinary());
+            
+        return $queryBuilder->getQuery()->getOneOrNullResult();
+    }
+    
+    public function getRoomsOfBuildingById(Request $request, Ulid $id)
+    {
+        $query = $request->query;
+        
+        $queryBuilder = $this->getEntityManager()->createQueryBuilder();
+        $queryBuilder
+            ->select('r')
+            ->from(Room::class, 'r')
+            ->where("r.building = :id")
+            ->setParameter("id", $id->toBinary())
+            ->setFirstResult($query->get("offset", "0"))
+            ->setMaxResults($query->get("limit", "50"));
+            
+        $paginator = new Paginator($queryBuilder);
+        
+        return [
+            "count" => count($paginator),
+            "datas" => $paginator->getQuery()->getResult()
+        ];
+    }
+    
 }

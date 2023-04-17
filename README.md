@@ -20,7 +20,11 @@ Si vous ne souhaitez pas utilisez docker, vérifiez la variable d'environnement 
 
 ### `php bin/console doctrine:database:create`
 
-Permet de créer la base de donnée avec les tables
+Permet de créer la base de donnée
+
+### `php bin/console doctrine:migrations:migrate`
+
+Génére les tables et leurs colonnes
 
 # Obtenir des fake datas:
 
