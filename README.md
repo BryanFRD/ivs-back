@@ -10,7 +10,7 @@ Lance le serveur sur le port 8000
 
 # Lancer une image mysql avec docker
 
-### `docker-compose up`
+### `docker-compose up --detach`
 
 Si vous utilisez docker, cette commande créera une image de mysql
 
