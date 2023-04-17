@@ -16,6 +16,12 @@ Si vous utilisez docker, cette commande créera une image de mysql
 
 Si vous ne souhaitez pas utilisez docker, vérifiez la variable d'environnement `DATABASE_URL` dans le `.env`
 
+# Créer la base de donnée
+
+### `php bin/console doctrine:database:create`
+
+Permet de créer la base de donnée avec les tables
+
 # Obtenir des fake datas:
 
 ### `php bin/console doctrine:fixture:load`
