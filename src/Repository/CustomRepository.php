@@ -19,13 +19,12 @@ class CustomRepository extends ServiceEntityRepository {
             get_class($this)
         );
         
-        
-        
         parent::__construct($registry, $this->entityName);
     }
     
     public function getAll(Request $request): array
     {
+        
         $query = $request->query;
         $search = $query->get("search", "");
         

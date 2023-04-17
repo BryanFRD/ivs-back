@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Building;
+use App\Entity\Organization;
 use App\Entity\Room;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,15 +21,15 @@ class BuildingRepository extends CustomRepository
         $queryBuilder
             ->select("b.id, b.name, b.zipcode, o.id as organization_id, o.name as organization_name, SUM(r.peoples) AS peoples")
             ->from(Building::class, "b")
-            ->join("b.rooms", "r")
-            ->join("b.organization", "o")
+            ->leftJoin("b.organization", "o")
+            ->leftJoin("b.rooms", "r")
             ->groupBy("b.id")
             ->where("b.name LIKE :search")
             ->setParameter("search", "%$search%")
             ->setFirstResult($query->get("offset", "0"))
             ->setMaxResults($query->get("limit", "50"));
         
-        $paginator = new Paginator($queryBuilder);
+            $paginator = new Paginator($queryBuilder);
             
         return [
             "count" => count($paginator),

@@ -6,7 +6,6 @@ use App\Entity\Building;
 use App\Entity\Room;
 use App\Repository\OrganizationRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Tools\Pagination\Paginator;
 use Exception;
 use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -56,7 +55,7 @@ class BuildingController extends CustomController
         name: "building_save",
         methods: ["POST"]
     )]
-    public function saveBuilding(Request $request, OrganizationRepository $organizationRepository): JsonResponse
+    public function saveBuilding(Request $request): JsonResponse
     {
         $body = json_decode($request->getContent());
 
@@ -64,17 +63,17 @@ class BuildingController extends CustomController
             throw new BadRequestException("Missing arguments");
 
         $building = new Building();
-
+        
         try {
             $building
                 ->setName($body->name)
                 ->setZipcode(intval($body->zipcode))
-                ->setOrganization($organizationRepository->find($body->organization_id ?: ''));
+                ->setOrganization($this->repository->getById(new Ulid(isset($body->organization_id) && !empty($body->organization_id) ? $body->organization_id : null)));
         } catch (Exception $ignored) {
             throw new BadRequestException("Bad arguments");
         }
 
-        $organizationRepository->save($building, true);
+        $this->repository->save($building, true);
 
         return new JsonResponse($building, status: 201);
     }

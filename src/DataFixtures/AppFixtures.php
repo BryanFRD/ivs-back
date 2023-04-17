@@ -12,7 +12,7 @@ class AppFixtures extends Fixture
 {
     public function load(ObjectManager $manager): void
     {
-        $faker = \Faker\Factory::create('fr_FR');
+        $faker = \Faker\Factory::create("fr_FR");
         
         for($i = 0; $i < 15; $i++){
             $organization = new Organization();

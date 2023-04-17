@@ -10,7 +10,7 @@ use Symfony\Component\Uid\Ulid;
 class OrganizationRepository extends CustomRepository
 {
     public function getAll(Request $request): array
-    {
+    {   
         $query = $request->query;
         $searchParam = $query->get("search", "");
         
@@ -18,8 +18,8 @@ class OrganizationRepository extends CustomRepository
         $queryBuilder
             ->select("o.id, o.name, SUM(r.peoples) AS peoples")
             ->from(Organization::class, "o")
-            ->join("o.buildings", "b")
-            ->join("b.rooms", "r")
+            ->leftJoin("o.buildings", "b")
+            ->leftJoin("b.rooms", "r")
             ->groupBy("o.id")
             ->where("o.name LIKE :search")
             ->setParameter("search", "%$searchParam%")

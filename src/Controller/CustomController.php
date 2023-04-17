@@ -3,11 +3,9 @@
 namespace App\Controller;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Tools\Pagination\Paginator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Uid\Ulid;
 
@@ -48,7 +46,7 @@ class CustomController extends AbstractController
         $entity = $this->serializer->deserialize($request->getContent(), $this->entityName, "json", $context);
         
         $this->repository->save($entity, true);
-
+        
         return new JsonResponse($entity, 201);
     }
 

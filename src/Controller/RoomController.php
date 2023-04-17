@@ -51,18 +51,18 @@ class RoomController extends CustomController
             throw new BadRequestException("Missing arguments");
 
         $room = new Room();
-
+        
         try {
             $room
                 ->setName($body->name)
                 ->setPeoples(intval($body->peoples))
-                ->setBuilding($this->repository->find($body->building_id ?: ''));
+                ->setBuilding($this->repository->getById(new Ulid(isset($body->building_id) && !empty($body->building_id) ? $body->building_id : null)));
         } catch (Exception $ignored) {
             throw new BadRequestException("Bad arguments");
         }
 
         $this->repository->save($room, true);
-
+        
         return new JsonResponse($room, status: 201);
     }
 
@@ -83,7 +83,7 @@ class RoomController extends CustomController
             $room
                 ->setName($body->name)
                 ->setPeoples($body->peoples)
-                ->setBuilding($buildingRepository->find($body->building_id ?: ''));
+                ->setBuilding($buildingRepository->find(new Ulid(isset($body->building_id) && !empty($body->building_id) ? $body->building_id : null)));
         } catch (Exception $ignored) {
             throw new BadRequestException("Bad arguments");
         }
